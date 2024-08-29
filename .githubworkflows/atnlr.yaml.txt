@@ -1,0 +1,38 @@
+name: Generate ANTLR Code
+
+on:
+  push:
+    paths:
+      - 'grammar/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up JDK 11
+      uses: actions/setup-java@v2
+      with:
+        java-version: '11'
+
+    - name: Install ANTLR
+      run: |
+        curl -O https://www.antlr.org/download/antlr-4.9.3-complete.jar
+        export CLASSPATH=".:./antlr-4.9.3-complete.jar:$CLASSPATH"
+        alias antlr4='java -jar ./antlr-4.9.3-complete.jar'
+        alias grun='java org.antlr.v4.gui.TestRig'
+
+    - name: Generate Code from Grammar
+      run: |
+        cd grammar
+        antlr4 Calc2.g4 -o ../generated
+
+    - name: Commit and Push Generated Code
+      run: |
+        git config --global user.name 'github-actions'
+        git config --global user.email 'github-actions@github.com'
+        git add ../generated
+        git commit -m "Generated code from Calc2.g4"
+        git push
